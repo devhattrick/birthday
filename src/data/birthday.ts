@@ -62,8 +62,8 @@ export const birthday = {
       "Happy Birthday! 🎂✨",
       "I hope you have the best day. 🤍",
     ],
-    signature: "Always yours,",
-    signedBy: "Your Han",
+    signature: "From HATTRICK",
+    signedBy: "✨🎂 HBD Kub Baby 🤍✨",
   },
 
   /** ─── Memories Gallery ──────────────────────────────── */
