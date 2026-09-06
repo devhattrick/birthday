@@ -1,0 +1,75 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, master, production]
+  workflow_dispatch:
+
+# สิทธิ์ที่ GitHub Pages ต้องใช้
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# ให้ deploy ทีละงาน ไม่ยกเลิกงานที่กำลังรันอยู่
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compute base path
+        id: base
+        # ไม่ hardcode username/repo — อ่านชื่อ repo จาก GITHUB_REPOSITORY
+        # - repo ปกติ            -> /<repo-name>/
+        # - repo ชื่อ <user>.github.io -> /
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          if [ "$REPO_NAME" = "${OWNER}.github.io" ]; then
+            echo "path=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "path=/${REPO_NAME}/" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build
+        env:
+          BASE_PATH: ${{ steps.base.outputs.path }}
+        run: npm run build
+
+      - name: Add .nojekyll
+        # กัน GitHub Pages ทิ้งไฟล์/โฟลเดอร์ที่ขึ้นต้นด้วย _ (เช่น asset ของ Vite)
+        run: touch dist/.nojekyll
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
