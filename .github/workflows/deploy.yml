@@ -57,6 +57,10 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          # เปิด GitHub Pages ให้อัตโนมัติถ้า repo ยังไม่ได้เปิด
+          # (ถ้าไม่ใส่ จะ fail ด้วย "Get Pages site failed" ตอนรันครั้งแรก)
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
